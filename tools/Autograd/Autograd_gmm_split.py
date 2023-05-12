@@ -140,7 +140,8 @@ fn_in = dir_in + fn
 fn_out = dir_out + fn
 
 alphas, means, icf, x, wishart_gamma, wishart_m = gmm_io.read_gmm_instance(
-    fn_in + ".txt", replicate_point)
+    f"{fn_in}.txt", replicate_point
+)
 
 
 tf = utils.timer(gmm.gmm_objective, (alphas, means, icf, x, wishart_gamma, wishart_m), nruns=nruns_f, limit=time_limit)
@@ -164,4 +165,4 @@ if nruns_J > 0:
 else:
     tJ = 0
 
-utils.write_times(fn_out + "_times_" + name + ".txt", tf, tJ)
+utils.write_times(f"{fn_out}_times_{name}.txt", tf, tJ)

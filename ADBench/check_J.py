@@ -12,24 +12,19 @@ MAX_DP = 12
 
 
 def load_matrix(fn):
-    f = open(fn)
-    lines = list(f)
-    f.close()
-
+    with open(fn) as f:
+        lines = list(f)
     split_lines = map(lambda line: line.replace("\n", "").split(" "), lines)
     filtered_sl = map(lambda line: list(filter(lambda s: len(s) > 0, line)), split_lines)
-    mat = list(filter(lambda row: len(row) > 3, filtered_sl))
-
-    return mat
+    return list(filter(lambda row: len(row) > 3, filtered_sl))
 
 
 def round_sf(number, sf=SIG_FIGS, dp=MAX_DP):
     number = float(number)
     if number == 0:
         return 0
-    else:
-        rounded = round(number, math.floor(-math.log10(abs(number))) + sf)
-        return round(rounded, dp)
+    rounded = round(number, math.floor(-math.log10(abs(number))) + sf)
+    return round(rounded, dp)
 
 
 def test_equality(mat1, mat2, sf=SIG_FIGS):
@@ -55,7 +50,10 @@ in_dir = f"{ad_root_dir}/tmp"
 
 # Scan folder for all files, and determine which graphs to create
 all_files = [path for path in utils._scandir_rec(in_dir) if "times" in path[-1]]
-all_graphs = [path.split("/") for path in list(set(["/".join(path[:-2]) for path in all_files]))]
+all_graphs = [
+    path.split("/")
+    for path in list({"/".join(path[:-2]) for path in all_files})
+]
 
 for graph_path in all_graphs:
     print("Finding files for graph:", "/".join(graph_path))
@@ -70,21 +68,21 @@ for graph_path in all_graphs:
             print("  May be missing some Jacobian output files for: " + "/".join(graph_path + [tool]))
 
         tests = {fn[:fn.find("_J_")]: f"{tool}/{fn}" for fn in files}
-        for test in tests:
+        for test, value in tests.items():
             if test in all_tests:
-                all_tests[test].append(tests[test])
+                all_tests[test].append(value)
             else:
                 all_tests[test] = [tests[test]]
 
     print("Comparing files for graph:", "/".join(graph_path))
 
-    for test in all_tests:
+    for test, value_ in all_tests.items():
         finite_files = [f for f in all_tests[test] if "Finite" in f]
         manual_files = [f for f in all_tests[test] if "Manual" in f]
-        if len(finite_files) == 0:
+        if not finite_files:
             print(f"No Finite output for test: {test}")
             continue
-        elif len(manual_files) == 0:
+        elif not manual_files:
             print(f"No Manual output for test: {test}")
             continue
 
@@ -97,8 +95,8 @@ for graph_path in all_graphs:
         if not test_equality(finite_mat, manual_mat, 4):
             print(f"  Manual derivatives ({manual_file}) do not match with Finite differences ({finite_file})")
 
-        for fn in all_tests[test]:
-            if fn == finite_file or fn == manual_file:
+        for fn in value_:
+            if fn in [finite_file, manual_file]:
                 continue
 
             mat = load_matrix("/".join([in_dir] + graph_path + [fn]))

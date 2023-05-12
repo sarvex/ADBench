@@ -10,7 +10,7 @@ def lstm_model(weight, bias, hidden, cell, inp):
     gates = tf.concat(( inp, hidden, inp, hidden ), 0) * weight + bias
     hidden_size = shape(hidden)[0]
 
-    forget = tf.math.sigmoid(gates[0: hidden_size])
+    forget = tf.math.sigmoid(gates[:hidden_size])
     ingate = tf.math.sigmoid(gates[hidden_size: 2 * hidden_size])
     outgate = tf.math.sigmoid(gates[2 * hidden_size: 3 * hidden_size])
     change = tf.math.tanh(gates[3 * hidden_size:])
@@ -31,9 +31,7 @@ def predict(w, w2, state, x):
     for i in range(0, shape(state)[0], 2):
         hidden, cell = lstm_model(w[i], w[i + 1], state[i], state[i + 1], x)
         x = hidden
-        new_state.append(hidden)
-        new_state.append(cell)
-
+        new_state.extend((hidden, cell))
     new_state = tf.stack(new_state, 0)
     return (x * w2[1] + w2[2], new_state)
 

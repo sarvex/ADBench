@@ -166,6 +166,8 @@ ntasks = (len(sys.argv) - 1) // 5
 replicate_point = (len(sys.argv) >= (ntasks * 5 + 2) and sys.argv[-1] == "-rep")
 time_limit = int(sys.argv[-2]) if len(sys.argv) >= (ntasks * 5 + 3) else float("inf")
 
+name = "Theano"
+
 for task_id in range(ntasks):
     print("task_id: %i" % task_id)
 
@@ -180,20 +182,19 @@ for task_id in range(ntasks):
     fn_out = dir_out + fn
 
     alphas, means, icf, x, wishart_gamma, wishart_m = gmm_io.read_gmm_instance(
-        fn_in + ".txt", replicate_point)
+        f"{fn_in}.txt", replicate_point
+    )
 
     tf, err = utils.timer(f, (alphas, means, icf, x, wishart_gamma, wishart_m), nruns=nruns_f, limit=time_limit, ret_val=True)
     print("err:")
     print(err)
 
-    name = "Theano"
-
     if nruns_J > 0:
         tJ, J = utils.timer(fgrad, (alphas, means, icf, x, wishart_gamma, wishart_m), nruns=nruns_J, limit=time_limit, ret_val=True)
 
         tJ += tf  # !!!!!!!!! adding this because no function value is returned by fgrad
-        gmm_io.write_J(fn_out + "_J_" + name + ".txt", J)
+        gmm_io.write_J(f"{fn_out}_J_{name}.txt", J)
     else:
         tJ = 0
 
-    utils.write_times(fn_out + "_times_" + name + ".txt", tf, tJ)
+    utils.write_times(f"{fn_out}_times_{name}.txt", tf, tJ)

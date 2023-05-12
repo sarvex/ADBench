@@ -9,7 +9,7 @@ def lstm(weight, bias, hidden, cell, _input):
     # NOTE this line came from: gates = hcat(input,hidden) * weight .+ bias
     gates = torch.cat((_input, hidden, _input, hidden)) * weight + bias
     hsize = hidden.shape[0]
-    forget = torch.sigmoid(gates[0: hsize])
+    forget = torch.sigmoid(gates[:hsize])
     ingate = torch.sigmoid(gates[hsize: 2 * hsize])
     outgate = torch.sigmoid(gates[2 * hsize: 3 * hsize])
     change = torch.tanh(gates[3 * hsize:])

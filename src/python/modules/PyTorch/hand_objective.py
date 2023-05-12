@@ -7,14 +7,14 @@ import torch
 def to_pose_params(theta, nbones):
     pose_params = torch.zeros((int(nbones) + 3, 3), dtype=torch.float64)
 
-    pose_params[0, :] = theta[0:3]
+    pose_params[0, :] = theta[:3]
     pose_params[1, :] = torch.ones((3,))
     pose_params[2, :] = theta[3:6]
 
     i_theta = 6
     i_pose_params = 5
     n_fingers = 5
-    for i_finger in range(n_fingers):
+    for _ in range(n_fingers):
         for i in [1, 2, 3]:
             pose_params[i_pose_params, 0] = theta[i_theta]
             i_theta += 1
@@ -103,10 +103,7 @@ def angle_axis_to_rotation_matrix(angle_axis):
         R[2, 2] = z * z + (1 - z * z) * c
         return R
 
-    if n < 0.0001:
-        return torch.eye(3)
-    else:
-        return aa2R()
+    return torch.eye(3) if n < 0.0001 else aa2R()
 
 
 def apply_global_transform(pose_params, positions):
@@ -142,9 +139,7 @@ def get_skinned_vertex_positions(
 
     positions2 = torch.sum(positions * weights.reshape(weights.shape + (1,)), 1)[:, :3]
 
-    positions3 = apply_global_transform(pose_params, positions2)
-
-    return positions3
+    return apply_global_transform(pose_params, positions2)
 
 
 def hand_objective(
@@ -170,12 +165,12 @@ def hand_objective(
         mirror_factor
     )
 
-    err = torch.stack([
-        points[i] - vertex_positions[int(correspondences[i])]
-        for i in range(points.shape[0])
-    ])
-
-    return err
+    return torch.stack(
+        [
+            points[i] - vertex_positions[int(correspondences[i])]
+            for i in range(points.shape[0])
+        ]
+    )
 
 
 def hand_objective_complicated(

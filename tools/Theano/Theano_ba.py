@@ -65,7 +65,7 @@ def radial_distort(rad_params, proj):
 def project(cam, X):
     Xcam = rodrigues_rotate_point(
         cam[ROT_IDX:ROT_IDX + 3], X - cam[C_IDX:C_IDX + 3])
-    distorted = radial_distort(cam[RAD_IDX:RAD_IDX + 2], Xcam[0:2] / Xcam[2])
+    distorted = radial_distort(cam[RAD_IDX:RAD_IDX + 2], Xcam[:2] / Xcam[2])
     return distorted * cam[F_IDX] + cam[X0_IDX:X0_IDX + 2]
 
 
@@ -160,7 +160,7 @@ for task_id in range(ntasks):
     fn_in = dir_in + fn
     fn_out = dir_out + fn
 
-    cams, X, w, obs, feats = ba_io.read_ba_instance(fn_in + ".txt")
+    cams, X, w, obs, feats = ba_io.read_ba_instance(f"{fn_in}.txt")
 
     tf, err = utils.timer(f, (cams, X, w, obs, feats), nruns=nruns_f, limit=time_limit, ret_val=True)
     # print("err:")
@@ -175,4 +175,4 @@ for task_id in range(ntasks):
     else:
         tJ = 0
 
-    utils.write_times(fn_out + "_times_" + name + ".txt", tf, tJ)
+    utils.write_times(f"{fn_out}_times_{name}.txt", tf, tJ)

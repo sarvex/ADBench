@@ -81,7 +81,7 @@ class PyTorchHand(ITest):
     def calculate_objective(self, times):
         '''Calculates objective function many times.'''
 
-        for i in range(times):
+        for _ in range(times):
             self.objective = self.objective_function(
                 self.inputs,
                 *self.params

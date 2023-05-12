@@ -16,14 +16,12 @@ def _set_rec(obj, keys, value, append=False):
                 obj[keys[0]] = [value]
         else:
             obj[keys[0]] = value
-        return obj
+    elif keys[0] in obj:
+        obj[keys[0]] = _set_rec(obj[keys[0]], keys[1:], value, append)
     else:
-        if keys[0] in obj:
-            obj[keys[0]] = _set_rec(obj[keys[0]], keys[1:], value, append)
-        else:
-            obj[keys[0]] = _set_rec({}, keys[1:], value, append)
+        obj[keys[0]] = _set_rec({}, keys[1:], value, append)
 
-        return obj
+    return obj
 
 
 # Recursively scan a directory for files
@@ -98,9 +96,8 @@ def get_test(fn):
 
 # Read times (objective, Jacobian) from a file
 def read_times(path):
-    file = open(path)
-    times = file.read().replace("\n", " ").split(" ")
-    file.close()
+    with open(path) as file:
+        times = file.read().replace("\n", " ").split(" ")
     return (float(times[0]), float(times[1]))
 
 

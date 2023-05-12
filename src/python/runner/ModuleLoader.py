@@ -16,12 +16,11 @@ def module_load(module_path):
 
     # import module
     spec = importlib.util.spec_from_file_location(class_name, module_path)
-    if spec != None:
-        test = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(test)
+    if spec is None:
+        raise RuntimeError(f"Can't load module with path: {module_path}")
+    test = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(test)
 
-        # get class from module
-        _class = getattr(test, class_name)
-        return _class()
-    else:
-        raise RuntimeError("Can't load module with path: " + module_path)
+    # get class from module
+    _class = getattr(test, class_name)
+    return _class()

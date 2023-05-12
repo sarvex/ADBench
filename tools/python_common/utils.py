@@ -16,7 +16,7 @@ def timer(func, args, nruns=10, limit=float("inf"), ret_val=False):
         i += 1
 
     if i < nruns:
-        print("Hit time limit after {} loops".format(i))
+        print(f"Hit time limit after {i} loops")
 
     result = total / i if i > 0 else 0
     return (result, value) if ret_val else result
@@ -24,7 +24,6 @@ def timer(func, args, nruns=10, limit=float("inf"), ret_val=False):
 
 # Write times to file
 def write_times(fn, tf, tJ):
-    fid = open(fn, "w")
-    print("%f %f" % (tf, tJ), file=fid)
-    print("tf tJ", file=fid)
-    fid.close()
+    with open(fn, "w") as fid:
+        print("%f %f" % (tf, tJ), file=fid)
+        print("tf tJ", file=fid)

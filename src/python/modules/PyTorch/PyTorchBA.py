@@ -56,7 +56,7 @@ class PyTorchBA(ITest):
         '''Calculates objective function many times.'''
 
         reproj_error = torch.empty((self.p, 2), dtype = torch.float64)
-        for i in range(times):
+        for _ in range(times):
             for j in range(self.p):
                 reproj_error[j] = compute_reproj_err(
                     self.cams[self.obs[j, 0]],
@@ -73,7 +73,7 @@ class PyTorchBA(ITest):
         ''' Calculates objective function jacobian many times.'''
 
         reproj_error = torch.empty((self.p, 2), dtype = torch.float64)
-        for i in range(times):
+        for _ in range(times):
             # reprojection error jacobian calculation
             for j in range(self.p):
                 camIdx = self.obs[j, 0]
@@ -82,7 +82,7 @@ class PyTorchBA(ITest):
                 cam = self.cams[camIdx]
                 x = self.x[ptIdx]
                 w = self.w[j]
-                
+
                 reproj_error[j], J = torch_jacobian(
                     compute_reproj_err,
                     ( cam, x, w ),

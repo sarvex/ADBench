@@ -90,41 +90,39 @@ def load_model(path):
 def read_hand_instance(model_dir, fn, read_us):
     model = load_model(model_dir)
 
-    fid = open(fn, "r")
-    line = fid.readline()
-    line = line.split()
-    npts = int(line[0])
-    ntheta = int(line[1])
+    with open(fn, "r") as fid:
+        line = fid.readline()
+        line = line.split()
+        npts = int(line[0])
+        ntheta = int(line[1])
 
-    lines = [fid.readline().split() for i in range(npts)]
+        lines = [fid.readline().split() for _ in range(npts)]
 
-    correspondences = np.array([int(line[0]) for line in lines])
+        correspondences = np.array([int(line[0]) for line in lines])
 
-    points = np.array([[float(line[i])
-                        for i in range(1, len(line))] for line in lines])
+        points = np.array([[float(line[i])
+                            for i in range(1, len(line))] for line in lines])
 
-    if read_us:
-        us = np.array([[float(elem) for elem in fid.readline().split()]
-                       for i_pt in range(npts)])
+        if read_us:
+            us = np.array(
+                [
+                    [float(elem) for elem in fid.readline().split()]
+                    for _ in range(npts)
+                ]
+            )
 
-    params = np.array([float(fid.readline()) for i in range(ntheta)])
-    fid.close()
-
+        params = np.array([float(fid.readline()) for _ in range(ntheta)])
     data = HandData(model, correspondences, points)
 
-    if read_us:
-        return params, us, data
-    else:
-        return params, data
+    return (params, us, data) if read_us else (params, data)
 
 
 def write_J(fn, J):
-    fid = open(fn, "w")
-    print("%i %i" % (J.shape[0], J.shape[1]), file=fid)
-    line = ""
-    for row in J:
-        for elem in row:
-            line += ("%f " % elem)
-        line += "\n"
-    print(line, file=fid)
-    fid.close()
+    with open(fn, "w") as fid:
+        print("%i %i" % (J.shape[0], J.shape[1]), file=fid)
+        line = ""
+        for row in J:
+            for elem in row:
+                line += ("%f " % elem)
+            line += "\n"
+        print(line, file=fid)

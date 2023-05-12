@@ -32,7 +32,9 @@ def gmm_objective_wrapper(params, x, wishart_gamma, wishart_m):
     return gmm.gmm_objective(params[0], params[1], params[2], x, wishart_gamma, wishart_m)
 
 
-alphas, means, icf, x, wishart_gamma, wishart_m = gmm_io.read_gmm_instance(fn_in + ".txt", replicate_point)
+alphas, means, icf, x, wishart_gamma, wishart_m = gmm_io.read_gmm_instance(
+    f"{fn_in}.txt", replicate_point
+)
 
 
 tf = utils.timer(gmm.gmm_objective, (alphas, means, icf, x, wishart_gamma, wishart_m), nruns=nruns_f, limit=time_limit)
@@ -42,8 +44,8 @@ if nruns_J > 0:
     # k = alphas.size
     grad_gmm_objective_wrapper = value_and_grad(gmm_objective_wrapper)
     tJ, grad = utils.timer(grad_gmm_objective_wrapper, ((alphas, means, icf), x, wishart_gamma, wishart_m), nruns=nruns_J, limit=time_limit, ret_val=True)
-    gmm_io.write_J(fn_out + "_J_" + name + ".txt", grad[1])
+    gmm_io.write_J(f"{fn_out}_J_{name}.txt", grad[1])
 else:
     tJ = 0
 
-utils.write_times(fn_out + "_times_" + name + ".txt", tf, tJ)
+utils.write_times(f"{fn_out}_times_{name}.txt", tf, tJ)

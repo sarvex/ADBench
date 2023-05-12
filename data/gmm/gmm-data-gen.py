@@ -40,33 +40,33 @@ def generate(data_uniform, data_normal, D, k, n):
         outfile.write(f"{D} {k} {n}\n")
 
         # alpha
-        for i in range(k):
+        for _ in range(k):
             outfile.write(f"{view_normal[0]:.6f}\n")
             view_normal = view_normal[1:]
 
         # mu
-        for i in range(k):
-            for j in range(D):
+        for _ in range(k):
+            for _ in range(D):
                 outfile.write(f"{view_uniform[0]:.6f} ")
                 view_uniform = view_uniform[1:]
             outfile.write("\n")
 
         # q
-        for i in range(k):
-            for j in range(D + D*(D-1)//2):
+        for _ in range(k):
+            for _ in range(D + D*(D-1)//2):
                 outfile.write(f"{view_normal[0]:.6f} ")
                 view_normal = view_normal[1:]
             outfile.write("\n")
 
         # x
         if replicate_point(n):
-            for j in range(D):
+            for _ in range(D):
                 outfile.write(f"{view_normal[0]:.6f} ")
                 view_normal = view_normal[1:]
             outfile.write("\n")
         else:
-            for i in range(n):
-                for j in range(D):
+            for _ in range(n):
+                for _ in range(D):
                     outfile.write(f"{view_normal[0]:.6f} ")
                     view_normal = view_normal[1:]
                 outfile.write("\n")

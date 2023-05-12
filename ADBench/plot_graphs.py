@@ -93,10 +93,7 @@ def graph_data(build_type, objective, maybe_test_size, function_type):
 #
 #     https://github.com/awf/ADBench/issues/143
 def objective_display_name(objective):
-    if objective.upper() == "LSTM":
-        return "D-LSTM"
-    else:
-        return objective.upper()
+    return "D-LSTM" if objective.upper() == "LSTM" else objective.upper()
 
 has_manual = lambda tool: tool.lower() in ["manual", "manual_eigen"]
 
@@ -249,10 +246,8 @@ def get_sorted_vals_by_tool(objective, graph, function_type, all_files, in_dir):
 
     def sorting_key_fun(v):
         y_list = utils.get_non_infinite_y_list(v[2])
-        if len(y_list) > 0:
-            return sum(y_list) / len(y_list)
-        else:
-            return 1e9
+        return sum(y_list) / len(y_list) if len(y_list) > 0 else 1e9
+
     sorted_vals_by_tool = sorted(vals_by_tool(objective, graph_files, function_type, in_dir),
                                  key=sorting_key_fun,
                                  reverse=True)
@@ -334,7 +329,7 @@ def values_and_styles(sorted_vals_by_tool):
 
         display_name = utils.format_tool(tool) if len(style) == 2 else style[2]
 
-        yield item, style[0: 2], display_name
+        yield (item, style[:2], display_name)
 
 def generate_graph(idx, data, static_out_dir, plotly_out_dir):
     '''Generates the graph from the given data.
@@ -414,9 +409,12 @@ def generate_graph(idx, data, static_out_dir, plotly_out_dir):
 
     # Setup graph attributes
     xlabel = "No. independent variables"
-    if "hand" == figure_info["objective"] or "hand" in figure_info["test_size"]:
+    if (
+        figure_info["objective"] == "hand"
+        or "hand" in figure_info["test_size"]
+    ):
         xlabel = "No. correspondences"
-        
+
     pyplot.title(graph_name)
     pyplot.xlabel(xlabel)
     pyplot.ylabel(f"Running time (s) for [{figure_info['function_type'].capitalize()}]")
@@ -512,7 +510,9 @@ def get_all_graphs(in_dir):
     '''Scans input folder for all files and determine which graphs to create.'''
 
     all_files = [ path for path in utils._scandir_rec(in_dir) if TIMES_SUBSTRING in path[-1] ]
-    all_graphs = [ path.split("/") for path in set(["/".join(path[:-2]) for path in all_files]) ]
+    all_graphs = [
+        path.split("/") for path in {"/".join(path[:-2]) for path in all_files}
+    ]
     all_graphs = [ (path, function_type) for function_type in function_types for path in all_graphs ]
 
     return all_graphs, all_files
@@ -533,9 +533,7 @@ def get_default_input_directory():
 
     adbench_dir = os.path.dirname(os.path.realpath(__file__))
     ad_root_dir = os.path.dirname(adbench_dir)
-    in_dir = os.path.join(ad_root_dir, "tmp")
-
-    return in_dir
+    return os.path.join(ad_root_dir, "tmp")
 
 def get_out_dir():
     '''Returns output directory.'''
@@ -544,9 +542,7 @@ def get_out_dir():
         return os.path.dirname(get_argument_value("--use-file"))
 
     in_dir = get_default_input_directory()
-    out_dir = os.path.join(in_dir, "graphs")
-
-    return out_dir
+    return os.path.join(in_dir, "graphs")
 
 def create_plot_data():
     '''Returns the data for plotting.'''

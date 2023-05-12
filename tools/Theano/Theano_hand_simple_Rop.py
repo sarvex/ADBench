@@ -25,15 +25,15 @@ def get_identity(dim,dtype):
 
 def to_pose_params(theta,nbones):
     pose_params = T.zeros((nbones+3,3),theta.dtype)
-    
-    pose_params = T.set_subtensor(pose_params[0,:], theta[0:3])
+
+    pose_params = T.set_subtensor(pose_params[0,:], theta[:3])
     pose_params = T.set_subtensor(pose_params[1,:], T.ones((3,),theta.dtype))
     pose_params = T.set_subtensor(pose_params[2,:], theta[3:6])
-    
+
     i_theta = 6
     i_pose_params = 5
     n_fingers = 5
-    for i_finger in range(n_fingers):
+    for _ in range(n_fingers):
         for i in [1, 2, 3]:
             pose_params = T.set_subtensor(pose_params[i_pose_params,0], theta[i_theta])
             i_theta += 1
@@ -201,6 +201,10 @@ tJ_compile = (end - start)
 print("tJ_compile: %f" % tJ_compile)
 
 ntasks = (len(sys.argv)-1)//5
+#print(err)
+
+name = "Theano_rop"
+
 for task_id in range(ntasks):
     print("task_id: %i" % task_id)
 
@@ -211,18 +215,14 @@ for task_id in range(ntasks):
     nruns_f = int(sys.argv[argv_idx+3])
     nruns_J = int(sys.argv[argv_idx+4])
 
-    model_dir = dir_in + "model/"
+    model_dir = f"{dir_in}model/"
     fn_in = dir_in + fn
     fn_out = dir_out + fn
-    
-    params, data = hand_io.read_hand_instance(model_dir, fn_in + ".txt", False)
-    if data.model.is_mirrored:
-        mirror_factor = -1.
-    else:
-        mirror_factor = 1.
 
+    params, data = hand_io.read_hand_instance(model_dir, f"{fn_in}.txt", False)
+    mirror_factor = -1. if data.model.is_mirrored else 1.
     start = t.time()
-    for i in range(nruns_f):
+    for _ in range(nruns_f):
         err = f(params, data.model.nbones, data.model.base_relatives, data.model.parents,
                 data.model.inverse_base_absolutes,data.model.base_positions,
                 data.model.weights,mirror_factor,data.points,
@@ -230,16 +230,12 @@ for task_id in range(ntasks):
     end = t.time()
     tf = (end - start)/nruns_f
     print("err:")
-    #print(err)
-    
-    name = "Theano_rop"
-    
     seed = np.eye(params.shape[0],dtype=params.dtype)
 
     tJ = 0
     if nruns_J > 0:
         start = t.time()
-        for i in range(nruns_J):
+        for _ in range(nruns_J):
             J = np.array([fjac(params,curr_seed,data.model.nbones, data.model.base_relatives, data.model.parents,
                 data.model.inverse_base_absolutes,data.model.base_positions,
                 data.model.weights,mirror_factor,data.points,
@@ -249,8 +245,8 @@ for task_id in range(ntasks):
         tJ = ((end - start)/nruns_J) + tf ###!!!!!!!!! adding this because no function value is returned by fjac
         print("J:")
         #print(J)
-        hand_io.write_J(fn_out + "_J_" + name + ".txt",J)    
-    
-    hand_io.write_times(fn_out + "_times_" + name + ".txt",tf,tJ)
+        hand_io.write_J(f"{fn_out}_J_{name}.txt", J)    
+
+    hand_io.write_times(f"{fn_out}_times_{name}.txt", tf, tJ)
 
 

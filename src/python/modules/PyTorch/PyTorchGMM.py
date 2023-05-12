@@ -38,13 +38,13 @@ class PyTorchGMM(ITest):
     def calculate_objective(self, times):
         '''Calculates objective function many times.'''
 
-        for i in range(times):
+        for _ in range(times):
             self.objective = gmm_objective(*self.inputs, *self.params)
 
     def calculate_jacobian(self, times):
         '''Calculates objective function jacobian many times.'''
 
-        for i in range(times):
+        for _ in range(times):
             self.objective, self.gradient = torch_jacobian(
                 gmm_objective,
                 self.inputs,

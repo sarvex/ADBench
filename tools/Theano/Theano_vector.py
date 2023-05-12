@@ -145,6 +145,8 @@ print("tJ_compile: %f" % tJ_compile)
 ntasks = (len(sys.argv)-1)//5
 replicate_point = (len(sys.argv) >= (ntasks*5+2) and sys.argv[-1] == "-rep")
 
+name = "Theano_vector"
+
 for task_id in range(ntasks):
     print("task_id: %i" % task_id)
 
@@ -157,26 +159,26 @@ for task_id in range(ntasks):
 
     fn_in = dir_in + fn;
     fn_out = dir_out + fn;
-    
-    alphas,means,icf,x,wishart_gamma,wishart_m = gmm_io.read_gmm_instance(fn_in + ".txt", replicate_point)
+
+    alphas, means, icf, x, wishart_gamma, wishart_m = gmm_io.read_gmm_instance(
+        f"{fn_in}.txt", replicate_point
+    )
 
     start = t.time()
-    for i in range(nruns_f):
+    for _ in range(nruns_f):
         err = f(alphas,means,icf,x,wishart_gamma,wishart_m)
     end = t.time()
     tf = (end - start)/nruns_f
     print("err:")
     print(err)
-    
-    name = "Theano_vector"
 
     tJ = 0
     if nruns_J > 0:
         start = t.time()
-        for i in range(nruns_J):
+        for _ in range(nruns_J):
             J = fgrad(alphas,means,icf,x,wishart_gamma,wishart_m)
         end = t.time()
         tJ = ((end - start)/nruns_J) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
-        gmm_io.write_J(fn_out + "_J_" + name + ".txt",J)    
-    
-    utils.write_times(fn_out + "_times_" + name + ".txt",tf,tJ)
+        gmm_io.write_J(f"{fn_out}_J_{name}.txt", J)    
+
+    utils.write_times(f"{fn_out}_times_{name}.txt", tf, tJ)

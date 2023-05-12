@@ -34,10 +34,7 @@ class Vector:
     def get_last(self):
         '''Returns the last item of the data.'''
 
-        if self.__n > 0:
-            return self.__data[self.__n - 1]
-        else:
-            return 0.0
+        return self.__data[self.__n - 1] if self.__n > 0 else 0.0
 
     def push_back(self, val):
         '''Adds a new element to the end of the data.'''

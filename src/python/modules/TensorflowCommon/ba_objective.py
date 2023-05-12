@@ -40,7 +40,7 @@ def project(cam, X):
         X - cam[C_IDX: C_IDX + 3]
     )
 
-    distorted = radial_distort(cam[RAD_IDX: RAD_IDX + 2], Xcam[0:2] / Xcam[2])
+    distorted = radial_distort(cam[RAD_IDX: RAD_IDX + 2], Xcam[:2] / Xcam[2])
     return distorted * cam[F_IDX] + cam[X0_IDX: X0_IDX + 2]
 
 

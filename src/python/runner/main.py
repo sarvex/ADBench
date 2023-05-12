@@ -40,12 +40,12 @@ def main(argv):
         if os.path.isdir(output_prefix):
             output_prefix += os.path.sep
 
-        if test_type == "GMM":
-            # read gmm input
-            _input = input_utils.read_gmm_instance(input_filepath, replicate_point)
-        elif test_type == "BA":
+        if test_type == "BA":
             # read ba input
             _input = input_utils.read_ba_instance(input_filepath)
+        elif test_type == "GMM":
+            # read gmm input
+            _input = input_utils.read_gmm_instance(input_filepath, replicate_point)
         elif test_type == "HAND":
             model_dir = os.path.join(filepath_to_dirname(input_filepath), "model")
             # read hand input
@@ -57,7 +57,7 @@ def main(argv):
         elif test_type == "LSTM":
             _input = input_utils.read_lstm_instance(input_filepath)
         else:
-            raise RuntimeError("Python runner doesn't support tests of " + test_type + " type")
+            raise RuntimeError(f"Python runner doesn't support tests of {test_type} type")
 
         run_benchmark(
             module_path,

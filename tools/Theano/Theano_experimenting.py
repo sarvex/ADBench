@@ -16,39 +16,37 @@ import theano.compile
 import theano.compile.mode
 
 def read_gmm_instance(fn):
-    fid = open(fn, "r")
-    line = fid.readline()
-    line = line.split()
-    d = int(line[0])
-    k = int(line[1])
-    n = int(line[2])
-    alphas = np.array([float(fid.readline()) for i in range(k)])
-    def parse_arr(arr):
-        return [float(x) for x in arr]   
-    means = np.array([parse_arr(fid.readline().split()) for i in range(k)]) 
-    icf = np.array([parse_arr(fid.readline().split()) for i in range(k)]) 
-    x = np.array([parse_arr(fid.readline().split()) for i in range(n)]) 
-    line = fid.readline().split()
-    wishart_gamma = float(line[0])
-    wishart_m = int(line[1])
-    fid.close()
+    with open(fn, "r") as fid:
+        line = fid.readline()
+        line = line.split()
+        d = int(line[0])
+        k = int(line[1])
+        n = int(line[2])
+        alphas = np.array([float(fid.readline()) for i in range(k)])
+        def parse_arr(arr):
+            return [float(x) for x in arr]
+
+        means = np.array([parse_arr(fid.readline().split()) for i in range(k)])
+        icf = np.array([parse_arr(fid.readline().split()) for i in range(k)])
+        x = np.array([parse_arr(fid.readline().split()) for i in range(n)])
+        line = fid.readline().split()
+        wishart_gamma = float(line[0])
+        wishart_m = int(line[1])
     return alphas,means,icf,x,wishart_gamma,wishart_m
 
 def write_times(fn,tf,tJ):
-    fid = open(fn, "w")
-    print("%f %f" % (tf,tJ) , file = fid)
-    print("tf tJ" , file = fid)
-    fid.close()
+    with open(fn, "w") as fid:
+        print("%f %f" % (tf,tJ) , file = fid)
+        print("tf tJ" , file = fid)
     
 def write_J(fn,grad):
-    fid = open(fn, "w")
-    J = np.concatenate((grad[0],grad[1].flatten(),grad[2].flatten()))
-    print("%i %i" % (1,J.size) , file = fid)
-    line = ""
-    for elem in J:
-        line = line + ("%f " % elem)
-    print(line,file = fid)
-    fid.close()
+    with open(fn, "w") as fid:
+        J = np.concatenate((grad[0],grad[1].flatten(),grad[2].flatten()))
+        print("%i %i" % (1,J.size) , file = fid)
+        line = ""
+        for elem in J:
+            line = line + ("%f " % elem)
+        print(line,file = fid)
 
 ############## Objective in theano ##################
 
@@ -132,25 +130,10 @@ def constructLs(d,ltri):
     return Ls
 
 def max_arr_(x,means):
-    results=[]
-    for mean in means:
-        results.append(T.sum(mean))
-    #def max2(mean,data):
-    #    xcentered=mean
-    #    return T.sum(xcentered)
-    #    #xcentered = data - mean
-    #    #return sqsum(xcentered)
-    #    #return th.ifelse.ifelse(T.lt(prev_max, elem), elem, prev_max)
-    #    #return 0.5*(prev_max + elem + T.abs_(prev_max - elem))
-    #results, updates = th.scan(fn=max2,
-    #                           outputs_info=None,
-    #                           sequences=means,
-    #                           non_sequences=x)
-    return results
+    return [T.sum(mean) for mean in means]
 
 def logsumexp_(x,means):
-    mx = max_arr_(x,means)
-    return mx
+    return max_arr_(x,means)
 
 # this is out of gmm_objective
 # only because it did not work with c linker
@@ -166,9 +149,8 @@ def gmm_objective_inner_loop(x,prev_slse,alphas,means,Qdiags,Ls,sum_qs):
     #                           outputs_info=None,
     #                           sequences=T.arange(k))
     sqsum_Qxcentered = logsumexp_(x,means)
-        
-    slse = prev_slse + logsumexp(alphas + sum_qs - 0.5*sqsum_Qxcentered)
-    return slse
+
+    return prev_slse + logsumexp(alphas + sum_qs - 0.5*sqsum_Qxcentered)
 
 def gmm_objective(alphas,means,icf,x,wishart_gamma,wishart_m):
     d = means.shape[1]
@@ -250,22 +232,22 @@ for task_id in range(ntasks):
     fn = sys.argv[argv_idx]
     nruns_f = int(sys.argv[argv_idx+1])
     nruns_J = int(sys.argv[argv_idx+2])
-    
-    alphas,means,icf,x,wishart_gamma,wishart_m = read_gmm_instance(fn + ".txt")
+
+    alphas,means,icf,x,wishart_gamma,wishart_m = read_gmm_instance(f"{fn}.txt")
 
     start = t.time()
-    for i in range(nruns_f):
+    for _ in range(nruns_f):
         err = f(alphas,means,icf,x,wishart_gamma,wishart_m)
     end = t.time()
     tf = (end - start)/nruns_f
     print("err: %f" % err)
 
     start = t.time()
-    for i in range(nruns_J):
+    for _ in range(nruns_J):
         J = fgrad(alphas,means,icf,x,wishart_gamma,wishart_m)
     end = t.time()
     tJ = ((end - start)/nruns_J) + tf ###!!!!!!!!! adding this because no function value is returned by fgrad
-    
+
     name = "J_Theano"
     write_J(fn + name + ".txt",J)
     write_times(fn + name + "_times.txt",tf,tJ)

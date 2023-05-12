@@ -12,27 +12,24 @@ def text_to_matrix(text, bits):
 
 
 def read_lstm_instance(fn):
-    fid = open(fn)
+    with open(fn) as fid:
+        line = fid.readline().split()
+        layer_count = int(line[0])
+        char_count = int(line[1])
+        char_bits = int(line[2])
 
-    line = fid.readline().split()
-    layer_count = int(line[0])
-    char_count = int(line[1])
-    char_bits = int(line[2])
+        fid.readline()
 
-    fid.readline()
+        def parse_arr(arr):
+            return [float(x) for x in arr]
 
-    def parse_arr(arr):
-        return [float(x) for x in arr]
-
-    main_params = np.array([parse_arr(fid.readline().split()) for i in range(2 * layer_count)])
-    fid.readline()
-    extra_params = np.array([parse_arr(fid.readline().split()) for i in range(3)])
-    fid.readline()
-    state = np.array([parse_arr(fid.readline().split()) for i in range(2 * layer_count)])
-    fid.readline()
-    text_mat = np.array([parse_arr(fid.readline().split()) for i in range(char_count)])
-
-    fid.close()
+        main_params = np.array([parse_arr(fid.readline().split()) for i in range(2 * layer_count)])
+        fid.readline()
+        extra_params = np.array([parse_arr(fid.readline().split()) for i in range(3)])
+        fid.readline()
+        state = np.array([parse_arr(fid.readline().split()) for i in range(2 * layer_count)])
+        fid.readline()
+        text_mat = np.array([parse_arr(fid.readline().split()) for i in range(char_count)])
 
     return main_params, extra_params, state, text_mat
 
@@ -44,7 +41,6 @@ def f_write_mat(fid, matrix):
 
 
 def write_J(fn, grad):
-    fid = open(fn, "w")
-    fid.write(f"1 {grad.shape[1]}\n")
-    f_write_mat(fid, grad)
-    fid.close()
+    with open(fn, "w") as fid:
+        fid.write(f"1 {grad.shape[1]}\n")
+        f_write_mat(fid, grad)

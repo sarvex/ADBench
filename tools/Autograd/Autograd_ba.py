@@ -54,19 +54,18 @@ RAD_IDX = 9
 
 def rodrigues_rotate_point(rot, X):
     sqtheta = np.sum(np.square(rot))
-    if sqtheta != 0.:
-        theta = np.sqrt(sqtheta)
-        costheta = np.cos(theta)
-        sintheta = np.sin(theta)
-        theta_inverse = 1. / theta
-
-        w = theta_inverse * rot
-        w_cross_X = cross(w, X)
-        tmp = np.dot(w, X) * (1. - costheta)
-
-        return X * costheta + w_cross_X * sintheta + w * tmp
-    else:
+    if sqtheta == 0.0:
         return X + cross(rot, X)
+    theta = np.sqrt(sqtheta)
+    costheta = np.cos(theta)
+    sintheta = np.sin(theta)
+    theta_inverse = 1. / theta
+
+    w = theta_inverse * rot
+    w_cross_X = cross(w, X)
+    tmp = np.dot(w, X) * (1. - costheta)
+
+    return X * costheta + w_cross_X * sintheta + w * tmp
 
 
 def radial_distort(rad_params, proj):
@@ -78,7 +77,7 @@ def radial_distort(rad_params, proj):
 def project(cam, X):
     Xcam = rodrigues_rotate_point(
         cam[ROT_IDX: ROT_IDX + 3], X - cam[C_IDX: C_IDX + 3])
-    distorted = radial_distort(cam[RAD_IDX: RAD_IDX + 2], Xcam[0:2] / Xcam[2])
+    distorted = radial_distort(cam[RAD_IDX: RAD_IDX + 2], Xcam[:2] / Xcam[2])
     return distorted * cam[F_IDX] + cam[X0_IDX: X0_IDX + 2]
 
 
@@ -109,7 +108,9 @@ compute_w_err_d = value_and_grad(compute_w_err)
 
 def compute_reproj_err_wrapper(params, feat):
     X_off = BA_NCAMPARAMS
-    return compute_reproj_err(params[0:X_off], params[X_off: X_off + 3], params[-1], feat)
+    return compute_reproj_err(
+        params[:X_off], params[X_off : X_off + 3], params[-1], feat
+    )
 
 
 compute_reproj_err_d = jacobian(compute_reproj_err_wrapper)
@@ -122,10 +123,7 @@ def compute_ba_J(cams, X, w, obs, feats):
         params = np.hstack((cams[obs[i, 0]], X[obs[i, 1]], w[i]))
         reproj_err_d.append(compute_reproj_err_d(params, feats[i]))
 
-    w_err_d = []
-    for curr_w in w:
-        w_err_d.append(compute_w_err_d(curr_w))
-
+    w_err_d = [compute_w_err_d(curr_w) for curr_w in w]
     return (reproj_err_d, w_err_d)
 
 
@@ -139,7 +137,7 @@ time_limit = int(sys.argv[6]) if len(sys.argv) >= 7 else float("inf")
 fn_in = dir_in + fn
 fn_out = dir_out + fn
 
-cams, X, w, obs, feats = ba_io.read_ba_instance(fn_in + ".txt")
+cams, X, w, obs, feats = ba_io.read_ba_instance(f"{fn_in}.txt")
 
 tf = utils.timer(ba_objective, (cams, X, w, obs, feats),
                  nruns=nruns_f, limit=time_limit)
@@ -152,4 +150,4 @@ if nruns_J > 0:
 else:
     tJ = 0
 
-utils.write_times(fn_out + "_times_" + name + ".txt", tf, tJ)
+utils.write_times(f"{fn_out}_times_{name}.txt", tf, tJ)

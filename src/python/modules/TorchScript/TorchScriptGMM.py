@@ -16,7 +16,7 @@ from modules.TorchScript.gmm_objective import gmm_objective
 def calculate_objective_ts(times:int, alphas, means, icf, x, wishart_gamma, wishart_m):
     
     objective = torch.empty(0, 0)
-    for i in range(times):
+    for _ in range(times):
         objective = gmm_objective(alphas, means, icf, x, wishart_gamma, wishart_m)
     return objective
 
@@ -57,7 +57,7 @@ class TorchScriptGMM(ITest):
     def calculate_jacobian(self, times:int):
         '''Calculates objective function jacobian many times.'''
 
-        for i in range(times):
+        for _ in range(times):
             self.objective, self.gradient = torch_jacobian(
                 gmm_objective,
                 self.inputs,

@@ -75,12 +75,10 @@ def torch_jacobian(func, inputs, params = None, flatten = True):
             performing concatenation of scalar tensors gradients.'''
 
             if tensor.dim() > 0:
-                if flatten:
-                    return tensor.grad.flatten()
-                else:
-                    return tensor.grad
+                return tensor.grad.flatten() if flatten else tensor.grad
             else:
                 return tensor.grad.view(1)
+
 
 
         if output.dim() > 0:
@@ -92,16 +90,11 @@ def torch_jacobian(func, inputs, params = None, flatten = True):
 
             output.backward(retain_graph = True)
 
-            J.append(torch.cat(
-                list(get_grad(inp, flatten) for inp in inputs)
-            ))
+            J.append(torch.cat([get_grad(inp, flatten) for inp in inputs]))
 
 
-    if params != None:
-        res = func(*inputs, *params)
-    else:
-        res = func(*inputs)
 
+    res = func(*inputs, *params) if params != None else func(*inputs)
     J = []
     recurse_backwards(res, inputs, J, flatten)
 

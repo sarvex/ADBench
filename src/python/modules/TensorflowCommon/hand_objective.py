@@ -40,13 +40,15 @@ def to_pose_params(theta, nbones):
 
             yield zeros     # [ 0, 0, 0 ]
 
-    head = tf.stack((
-        theta[0: 3],
-        tf.ones((3, ), dtype = tf.float64),
-        theta[3: 6],
-        tf.zeros((3, ), dtype = tf.float64),
-        tf.zeros((3, ), dtype = tf.float64)
-    ))
+    head = tf.stack(
+        (
+            theta[:3],
+            tf.ones((3,), dtype=tf.float64),
+            theta[3:6],
+            tf.zeros((3,), dtype=tf.float64),
+            tf.zeros((3,), dtype=tf.float64),
+        )
+    )
 
     tail = tf.stack(tuple(tail_generator(theta)))
     return tf.concat((head, tail), 0)
